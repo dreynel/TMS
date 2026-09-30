@@ -27,8 +27,9 @@ class BorrowingController extends Controller
 
         $borrowings = $this->borrowingRepo->getFilteredBorrowings($borrowerId, $status, $search, 15);
         $statuses = BorrowStatus::cases();
+        $availableTools = $this->toolRepo->getAvailableTools();
 
-        return view('borrowings.index', compact('borrowings', 'statuses', 'status', 'search'));
+        return view('borrowings.index', compact('borrowings', 'statuses', 'status', 'search', 'availableTools'));
     }
 
     public function create()
@@ -92,7 +93,10 @@ class BorrowingController extends Controller
         $custodianId = Auth::id();
         $notes = $request->input('notes');
 
-        $this->borrowingService->approveRequest($id, $custodianId, $notes);
+        $success = $this->borrowingService->approveRequest($id, $custodianId, $notes);
+        if (!$success) {
+            return back()->with('error', 'Borrowing request could not be approved. Invalid transaction status.');
+        }
 
         return redirect()->route('borrowings.show', $id)->with('success', 'Borrowing request approved. Ready for tool release.');
     }
@@ -102,7 +106,10 @@ class BorrowingController extends Controller
         $request->validate(['rejection_reason' => 'required|string']);
         $custodianId = Auth::id();
 
-        $this->borrowingService->rejectRequest($id, $custodianId, $request->input('rejection_reason'));
+        $success = $this->borrowingService->rejectRequest($id, $custodianId, $request->input('rejection_reason'));
+        if (!$success) {
+            return back()->with('error', 'Borrowing request could not be rejected. Invalid transaction status.');
+        }
 
         return redirect()->route('borrowings.show', $id)->with('success', 'Borrowing request rejected.');
     }

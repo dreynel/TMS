@@ -34,7 +34,14 @@ class UserController extends Controller
 
     public function updateRole(Request $request, int $id)
     {
-        $request->validate(['role' => 'required|string']);
+        $request->validate([
+            'role' => ['required', \Illuminate\Validation\Rule::enum(UserRole::class)]
+        ]);
+
+        if (auth()->id() === $id && $request->input('role') !== UserRole::ADMIN->value) {
+            return back()->with('error', 'You cannot demote your own administrator account.');
+        }
+
         $this->userRepo->updateUser($id, ['role' => $request->input('role'), 'is_approved' => true]);
 
         return back()->with('success', 'User role updated successfully.');

@@ -38,9 +38,13 @@ Route::middleware('auth')->group(function () {
 
     // Borrowing Transactions & Flow
     Route::get('/borrowings', [BorrowingController::class, 'index'])->name('borrowings.index');
-    Route::get('/borrowings/create', [BorrowingController::class, 'create'])->name('borrowings.create');
-    Route::post('/borrowings', [BorrowingController::class, 'store'])->name('borrowings.store');
     Route::get('/borrowings/{id}', [BorrowingController::class, 'show'])->name('borrowings.show')->where('id', '[0-9]+');
+
+    // Borrowing Request Submission (Requires Approved Borrower / Account)
+    Route::middleware('approved')->group(function () {
+        Route::get('/borrowings/create', [BorrowingController::class, 'create'])->name('borrowings.create');
+        Route::post('/borrowings', [BorrowingController::class, 'store'])->name('borrowings.store');
+    });
 
     // Custodian Approval, Release & Return Handover Actions
     Route::middleware('role:admin,custodian')->group(function () {
@@ -53,7 +57,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users/{id}/approve', [UserController::class, 'approve'])->name('users.approve');
         Route::post('/users/{id}/reject', [UserController::class, 'reject'])->name('users.reject');
-        Route::put('/users/{id}/role', [UserController::class, 'updateRole'])->name('users.update-role');
 
         // Reports & Print Outputs
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -61,5 +64,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/borrowing-history', [ReportController::class, 'borrowingHistory'])->name('reports.borrowing_history');
         Route::get('/reports/overdue', [ReportController::class, 'overdue'])->name('reports.overdue');
         Route::get('/reports/condition-audit', [ReportController::class, 'conditionAudit'])->name('reports.condition_audit');
+    });
+
+    // Admin-Only Role Management
+    Route::middleware('role:admin')->group(function () {
+        Route::put('/users/{id}/role', [UserController::class, 'updateRole'])->name('users.update-role');
     });
 });

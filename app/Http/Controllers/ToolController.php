@@ -73,7 +73,11 @@ class ToolController extends Controller
             abort(404, 'Tool not found.');
         }
 
-        return view('tools.show', compact('tool'));
+        $categories = Category::all();
+        $statuses = ToolStatus::cases();
+        $conditions = ToolCondition::cases();
+
+        return view('tools.show', compact('tool', 'categories', 'statuses', 'conditions'));
     }
 
     public function edit(int $id)
@@ -128,6 +132,15 @@ class ToolController extends Controller
 
     public function destroy(int $id)
     {
+        $tool = $this->toolRepo->findById($id);
+        if (!$tool) {
+            return redirect()->route('tools.index')->with('error', 'Tool not found.');
+        }
+
+        if (!$tool->canBeDeleted()) {
+            return back()->with('error', "Cannot delete tool '{$tool->name}' because it has active or unreturned borrowing transactions.");
+        }
+
         $this->toolRepo->deleteTool($id);
         return redirect()->route('tools.index')->with('success', 'Tool removed from inventory.');
     }

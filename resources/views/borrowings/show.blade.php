@@ -77,16 +77,57 @@
             @endif
         </div>
 
-        <!-- Requested Items Table -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <!-- Requested Items Table / Cards -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <h2 class="text-sm font-bold text-slate-900 uppercase mb-4">
                 Requested Equipment & Return Condition Inspection
             </h2>
 
-            <div class="overflow-x-auto">
+            <!-- Mobile Cards View -->
+            <div class="block md:hidden space-y-3">
+                @foreach($borrowing->items as $item)
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-mono font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[11px]">{{ $item->tool->asset_code }}</span>
+                            <h3 class="font-bold text-slate-900 text-sm mt-1">{{ $item->tool->name }}</h3>
+                        </div>
+                        <span class="text-blue-900 font-extrabold text-xs font-mono bg-blue-100 px-2 py-0.5 rounded-full shrink-0">
+                            {{ $item->quantity_requested }} Qty
+                        </span>
+                    </div>
+
+                    <div class="text-[11px] text-slate-500">
+                        <i class="fa-solid fa-location-dot text-amber-500 mr-1"></i> Storage: {{ $item->tool->location_storage }}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 text-[11px]">
+                        <div>
+                            <span class="text-slate-400 font-bold uppercase text-[9px] block">Release Condition</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border inline-block mt-0.5 {{ $item->condition_upon_release->badgeClass() }}">
+                                {{ $item->condition_upon_release->label() }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-bold uppercase text-[9px] block">Return Condition</span>
+                            @if($item->condition_upon_return)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold border inline-block mt-0.5 {{ $item->condition_upon_return->badgeClass() }}">
+                                    {{ $item->condition_upon_return->label() }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 font-normal inline-block mt-0.5">Pending</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <!-- Desktop Table View -->
+            <div class="hidden md:block table-responsive">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold">
+                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold sticky top-0 z-10">
                             <th class="p-3">Asset Code</th>
                             <th class="p-3">Tool Name</th>
                             <th class="p-3">Location Storage</th>
@@ -127,7 +168,7 @@
 
     <!-- Right Column: Custodian Action Panel -->
     <div>
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-20 space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 static lg:sticky top-20 space-y-4">
             <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 uppercase">
                 Custodian Control Panel
             </h3>
@@ -136,18 +177,17 @@
             @if($borrowing->status->value === 'pending' && (auth()->user()->isAdmin() || auth()->user()->isCustodian()))
                 <p class="text-xs text-slate-600">Review request purpose and verify stock availability before approving.</p>
 
-                <form action="{{ route('borrowings.approve', $borrowing->id) }}" method="POST">
+                <form id="approveBorrowForm" action="{{ route('borrowings.approve', $borrowing->id) }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition-all mb-2">
+                    <button type="button" onclick="confirmApproveRequest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition-all mb-2 flex items-center justify-center">
                         <i class="fa-solid fa-check-circle mr-1.5"></i> Approve Borrow Request
                     </button>
                 </form>
 
-                <form action="{{ route('borrowings.reject', $borrowing->id) }}" method="POST" class="space-y-2">
+                <form id="rejectBorrowForm" action="{{ route('borrowings.reject', $borrowing->id) }}" method="POST">
                     @csrf
-                    <input type="text" name="rejection_reason" placeholder="Enter reason if rejecting..." required
-                        class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs">
-                    <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow transition-all">
+                    <input type="hidden" id="rejectionReasonInput" name="rejection_reason" value="">
+                    <button type="button" onclick="promptRejectRequest()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow transition-all flex items-center justify-center">
                         <i class="fa-solid fa-times-circle mr-1.5"></i> Reject Request
                     </button>
                 </form>
@@ -156,9 +196,9 @@
             <!-- 2. If Approved / Pending -> Release / Checkout Tools -->
             @if(in_array($borrowing->status->value, ['pending', 'approved']) && (auth()->user()->isAdmin() || auth()->user()->isCustodian()))
                 <div class="pt-2 border-t border-slate-100">
-                    <form action="{{ route('borrowings.release', $borrowing->id) }}" method="POST">
+                    <form id="releaseBorrowForm" action="{{ route('borrowings.release', $borrowing->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-md transition-all">
+                        <button type="button" onclick="confirmReleaseTools()" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center">
                             <i class="fa-solid fa-hand-holding-medical mr-1.5 text-amber-400"></i> Release / Handover Tools Now
                         </button>
                     </form>
@@ -167,7 +207,7 @@
 
             <!-- 3. If Released / Overdue -> Process Tool Return -->
             @if(in_array($borrowing->status->value, ['released', 'overdue']) && (auth()->user()->isAdmin() || auth()->user()->isCustodian()))
-                <button @click="showReturnModal = true" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-3 px-4 rounded-xl text-xs shadow-md transition-all">
+                <button @click="showReturnModal = true" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-3 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center">
                     <i class="fa-solid fa-rotate-left mr-1.5"></i> Process Tool Return & Condition Inspection
                 </button>
             @endif
@@ -187,7 +227,7 @@
             <h3 class="text-base font-bold text-slate-900 mb-2">Process Return & Inspect Condition</h3>
             <p class="text-xs text-slate-500 mb-4">Record tool physical condition upon return before restocking into inventory.</p>
 
-            <form action="{{ route('borrowings.return', $borrowing->id) }}" method="POST" class="space-y-4">
+            <form id="returnToolsForm" action="{{ route('borrowings.return', $borrowing->id) }}" method="POST" class="space-y-4">
                 @csrf
                 
                 @foreach($borrowing->items as $item)
@@ -216,7 +256,7 @@
                     <button type="button" @click="showReturnModal = false" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl">
                         Cancel
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-blue-900 text-white font-bold text-xs rounded-xl shadow">
+                    <button type="button" onclick="confirmReturnSubmit()" class="px-5 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">
                         Confirm Return & Restock Stock
                     </button>
                 </div>
@@ -225,5 +265,88 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+    function confirmApproveRequest() {
+        Swal.fire({
+            title: 'Approve Borrow Request?',
+            text: 'Approve request {{ $borrowing->borrow_code }} for {{ addslashes($borrowing->borrower->name) }}? Items will be queued for release.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, Approve Request',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('approveBorrowForm').submit();
+            }
+        });
+    }
+
+    function promptRejectRequest() {
+        Swal.fire({
+            title: 'Reject Borrowing Request',
+            text: 'Please provide a clear reason for rejecting transaction {{ $borrowing->borrow_code }}:',
+            input: 'textarea',
+            inputPlaceholder: 'e.g. Schedule conflict, tool under maintenance, insufficient documentation...',
+            inputAttributes: {
+                'aria-label': 'Type rejection reason here',
+                'rows': '3'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Confirm Rejection',
+            cancelButtonText: 'Cancel',
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'A rejection reason is required!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('rejectionReasonInput').value = result.value.trim();
+                document.getElementById('rejectBorrowForm').submit();
+            }
+        });
+    }
+
+    function confirmReleaseTools() {
+        Swal.fire({
+            title: 'Release Equipment to Borrower?',
+            text: 'Hand over requested tools to {{ addslashes($borrowing->borrower->name) }}? Inventory stock will be deducted immediately.',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#002B49',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, Release Equipment',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('releaseBorrowForm').submit();
+            }
+        });
+    }
+
+    function confirmReturnSubmit() {
+        Swal.fire({
+            title: 'Confirm Tool Return & Restock?',
+            text: 'Physical condition inspection will be recorded and inventory stock will be restored.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#002B49',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, Complete Return',
+            cancelButtonText: 'Review Form'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('returnToolsForm').submit();
+            }
+        });
+    }
+</script>
+@endpush
 
 @endsection

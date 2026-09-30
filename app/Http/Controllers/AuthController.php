@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\UserRepositoryInterface;
 use App\Enums\UserRole;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,19 +20,42 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $request->validate([
+            'login' => 'required_without:email|string|nullable',
+            'email' => 'required_without:login|string|nullable',
+            'password' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $loginInput = trim((string) ($request->input('login') ?? $request->input('email') ?? ''));
+        $password = (string) $request->input('password');
+        $remember = $request->boolean('remember');
+
+        // Check for role aliases / shortcuts
+        $resolvedEmail = match (strtolower($loginInput)) {
+            'admin' => 'admin@isatu.edu.ph',
+            'custodian' => 'custodian@isatu.edu.ph',
+            'student', 'borrower' => 'student@isatu.edu.ph',
+            default => null,
+        };
+
+        if (!$resolvedEmail) {
+            $user = User::where('email', $loginInput)
+                ->orWhere('id_number', $loginInput)
+                ->orWhere('name', $loginInput)
+                ->first();
+
+            $resolvedEmail = $user ? $user->email : $loginInput;
+        }
+
+        if (Auth::attempt(['email' => $resolvedEmail, 'password' => $password], $remember)) {
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
+            'login' => 'The provided credentials do not match our records.',
             'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        ])->onlyInput('login', 'email');
     }
 
     public function showRegister()

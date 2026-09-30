@@ -22,17 +22,17 @@
                 @endif
             </p>
         </div>
-        <div class="mt-4 md:mt-0 flex space-x-3">
+        <div class="mt-4 md:mt-0 flex flex-wrap gap-2.5">
             @if($user->isBorrower())
-                <a href="{{ route('borrowings.create') }}" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center">
+                <a href="{{ route('borrowings.create') }}" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center">
                     <i class="fa-solid fa-plus-circle mr-2"></i> Request Borrow Tools
                 </a>
             @else
-                <a href="{{ route('tools.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center">
-                    <i class="fa-solid fa-plus-circle mr-2"></i> Add New Tool
+                <a href="{{ route('tools.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center">
+                    <i class="fa-solid fa-plus-circle mr-1.5 sm:mr-2"></i> Add Tool
                 </a>
-                <a href="{{ route('reports.index') }}" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all flex items-center">
-                    <i class="fa-solid fa-print mr-2"></i> View Reports
+                <a href="{{ route('reports.index') }}" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center">
+                    <i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Reports
                 </a>
             @endif
         </div>
@@ -55,7 +55,7 @@
 @endif
 
 <!-- KPI Stats Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
         <div class="flex items-center justify-between">
             <div>
@@ -112,25 +112,47 @@
 </div>
 
 <!-- Main Section: Activity & Tables -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
     
     <!-- Pending Approval & Active Borrowings (2 cols) -->
-    <div class="lg:col-span-2 space-y-8">
+    <div class="lg:col-span-2 space-y-6 sm:space-y-8">
         
         <!-- Custodian Pending Queue -->
         @if(($user->isAdmin() || $user->isCustodian()) && count($pendingBorrowings) > 0)
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-base font-bold text-slate-900 flex items-center">
+                <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center">
                     <i class="fa-solid fa-bell text-amber-500 mr-2"></i> Pending Borrowing Approval Queue
                 </h2>
                 <a href="{{ route('borrowings.index', ['status' => 'pending']) }}" class="text-xs font-bold text-blue-700 hover:underline">View All</a>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- Mobile Pending Cards -->
+            <div class="block md:hidden space-y-3">
+                @foreach($pendingBorrowings as $row)
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[11px]">{{ $row->borrow_code }}</span>
+                        <span class="text-slate-500 text-[11px]">{{ $row->expected_return_date->format('M d, Y') }}</span>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-900 block text-xs">{{ $row->borrower->name }}</span>
+                        <p class="text-slate-500 text-[11px] line-clamp-1">{{ $row->purpose }}</p>
+                    </div>
+                    <div class="pt-1">
+                        <a href="{{ route('borrowings.show', $row->id) }}" class="w-full bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold py-2 rounded-lg shadow flex items-center justify-center">
+                            Review Request
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <!-- Desktop Pending Table -->
+            <div class="hidden md:block table-responsive">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold">
+                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold sticky top-0 z-10">
                             <th class="p-3">Borrow Code</th>
                             <th class="p-3">Borrower</th>
                             <th class="p-3">Purpose</th>
@@ -160,19 +182,39 @@
 
         <!-- Borrower's Recent Transactions -->
         @if($user->isBorrower())
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-base font-bold text-slate-900 flex items-center">
+                <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center">
                     <i class="fa-solid fa-history text-blue-600 mr-2"></i> My Borrowing Requests & Status
                 </h2>
                 <a href="{{ route('borrowings.index') }}" class="text-xs font-bold text-blue-700 hover:underline">View All</a>
             </div>
 
             @if(count($userBorrowings) > 0)
-            <div class="overflow-x-auto">
+            <!-- Mobile Borrower Requests Cards -->
+            <div class="block md:hidden space-y-3">
+                @foreach($userBorrowings as $row)
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[11px]">{{ $row->borrow_code }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $row->status->badgeClass() }}">
+                            {{ $row->status->label() }}
+                        </span>
+                    </div>
+                    <p class="text-slate-600 text-[11px] line-clamp-1">{{ $row->purpose }}</p>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200 text-[11px]">
+                        <span class="text-slate-400">Due: {{ $row->expected_return_date->format('M d, Y') }}</span>
+                        <a href="{{ route('borrowings.show', $row->id) }}" class="text-blue-700 font-bold hover:underline">View Details</a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <!-- Desktop Borrower Requests Table -->
+            <div class="hidden md:block table-responsive">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold">
+                        <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold sticky top-0 z-10">
                             <th class="p-3">Code</th>
                             <th class="p-3">Purpose</th>
                             <th class="p-3">Return Date</th>

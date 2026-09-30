@@ -52,4 +52,21 @@ class Tool extends Model
     {
         return $this->status === ToolStatus::AVAILABLE && $this->available_qty >= $requestedQty;
     }
+
+    public function hasActiveBorrowings(): bool
+    {
+        return $this->borrowingItems()
+            ->whereHas('borrowing', function ($query) {
+                $query->whereIn('status', [
+                    \App\Enums\BorrowStatus::RELEASED,
+                    \App\Enums\BorrowStatus::OVERDUE,
+                ]);
+            })
+            ->exists();
+    }
+
+    public function canBeDeleted(): bool
+    {
+        return !$this->hasActiveBorrowings();
+    }
 }

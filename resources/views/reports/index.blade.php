@@ -22,11 +22,11 @@
                 Complete audit of all equipment assets, storage rack locations, total quantities, current available stock, and asset tags.
             </p>
         </div>
-        <div class="mt-6 flex space-x-2">
-            <a href="{{ route('reports.inventory') }}" class="flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
+        <div class="mt-6 flex flex-col sm:flex-row gap-2">
+            <a href="{{ route('reports.inventory') }}" class="w-full sm:flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
                 View Report Table
             </a>
-            <a href="{{ route('reports.inventory', ['print' => 1]) }}" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow">
+            <a href="{{ route('reports.inventory', ['print' => 1]) }}" target="_blank" class="w-full sm:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow flex items-center justify-center">
                 <i class="fa-solid fa-print mr-1"></i> Print / PDF
             </a>
         </div>
@@ -43,11 +43,11 @@
                 Comprehensive log of tool releases, borrower details, activities, approval custodians, and transaction timelines.
             </p>
         </div>
-        <div class="mt-6 flex space-x-2">
-            <a href="{{ route('reports.borrowing_history') }}" class="flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
+        <div class="mt-6 flex flex-col sm:flex-row gap-2">
+            <a href="{{ route('reports.borrowing_history') }}" class="w-full sm:flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
                 View Report Table
             </a>
-            <a href="{{ route('reports.borrowing_history', ['print' => 1]) }}" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow">
+            <a href="{{ route('reports.borrowing_history', ['print' => 1]) }}" target="_blank" class="w-full sm:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow flex items-center justify-center">
                 <i class="fa-solid fa-print mr-1"></i> Print / PDF
             </a>
         </div>
@@ -64,11 +64,11 @@
                 Highlights unreturned equipment past expected return dates, student contact info, and days overdue.
             </p>
         </div>
-        <div class="mt-6 flex space-x-2">
-            <a href="{{ route('reports.overdue') }}" class="flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
+        <div class="mt-6 flex flex-col sm:flex-row gap-2">
+            <a href="{{ route('reports.overdue') }}" class="w-full sm:flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
                 View Report Table
             </a>
-            <a href="{{ route('reports.overdue', ['print' => 1]) }}" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow">
+            <a href="{{ route('reports.overdue', ['print' => 1]) }}" target="_blank" class="w-full sm:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow flex items-center justify-center">
                 <i class="fa-solid fa-print mr-1"></i> Print / PDF
             </a>
         </div>
@@ -85,11 +85,11 @@
                 Tracks tool condition transitions (New -> Good -> Damaged) and custodian return inspection notes over time.
             </p>
         </div>
-        <div class="mt-6 flex space-x-2">
-            <a href="{{ route('reports.condition_audit') }}" class="flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
+        <div class="mt-6 flex flex-col sm:flex-row gap-2">
+            <a href="{{ route('reports.condition_audit') }}" class="w-full sm:flex-grow text-center bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs py-2.5 rounded-xl shadow">
                 View Report Table
             </a>
-            <a href="{{ route('reports.condition_audit', ['print' => 1]) }}" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow">
+            <a href="{{ route('reports.condition_audit', ['print' => 1]) }}" target="_blank" class="w-full sm:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs py-2.5 px-4 rounded-xl shadow flex items-center justify-center">
                 <i class="fa-solid fa-print mr-1"></i> Print / PDF
             </a>
         </div>

@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+<div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-8">
     
     <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
         <div>

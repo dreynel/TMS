@@ -15,8 +15,13 @@ class InventoryService
         $category = Category::find($categoryId);
         $codePrefix = $category ? strtoupper($category->code) : 'TOOL';
 
-        $count = Tool::where('category_id', $categoryId)->count() + 1;
-        return 'BIND-' . $codePrefix . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        $index = Tool::where('category_id', $categoryId)->count() + 1;
+        do {
+            $code = 'BIND-' . $codePrefix . '-' . str_pad((string) $index, 3, '0', STR_PAD_LEFT);
+            $index++;
+        } while (Tool::where('asset_code', $code)->exists());
+
+        return $code;
     }
 
     public function addTool(array $data): Tool

@@ -145,6 +145,9 @@ class ToolRepository implements ToolRepositoryInterface
     public function deleteTool(int $id): bool
     {
         $tool = Tool::find($id);
-        return $tool ? $tool->delete() : false;
+        if (!$tool || !$tool->canBeDeleted()) {
+            return false;
+        }
+        return $tool->delete();
     }
 }

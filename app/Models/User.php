@@ -61,4 +61,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Borrowing::class, 'custodian_id');
     }
+
+    public function hasOverdueBorrowings(): bool
+    {
+        return $this->borrowings()
+            ->where(function ($query) {
+                $query->where('status', \App\Enums\BorrowStatus::OVERDUE)
+                      ->orWhere(function ($q) {
+                          $q->where('status', \App\Enums\BorrowStatus::RELEASED)
+                            ->where('expected_return_date', '<', now());
+                      });
+            })
+            ->exists();
+    }
+
+    public function canBorrow(): bool
+    {
+        return $this->isBorrower() && $this->is_approved && !$this->hasOverdueBorrowings();
+    }
 }

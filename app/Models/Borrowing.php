@@ -54,4 +54,24 @@ class Borrowing extends Model
         }
         return $this->status === BorrowStatus::OVERDUE;
     }
+
+    public function canBeApproved(): bool
+    {
+        return $this->status === BorrowStatus::PENDING;
+    }
+
+    public function canBeRejected(): bool
+    {
+        return in_array($this->status, [BorrowStatus::PENDING, BorrowStatus::APPROVED]);
+    }
+
+    public function canBeReleased(): bool
+    {
+        return in_array($this->status, [BorrowStatus::PENDING, BorrowStatus::APPROVED]);
+    }
+
+    public function canBeReturned(): bool
+    {
+        return in_array($this->status, [BorrowStatus::RELEASED, BorrowStatus::OVERDUE]);
+    }
 }
